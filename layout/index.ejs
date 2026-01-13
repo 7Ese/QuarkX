@@ -1,0 +1,84 @@
+<div class="page-index">
+  <%# ✨ 新功能: 首页顶部分类筛选按钮 %>
+    <% if (site.categories && site.categories.length) { %>
+      <div class="category-filter">
+        <div class="category-filter-list">
+          <button class="category-filter-btn active pc-only" data-category="all">
+            <span class="filter-name">All</span>
+            <span class="filter-count">
+              <%= site.posts.length %>
+            </span>
+          </button>
+          <% site.categories.sort('length', -1).each(function(cat) { %>
+            <button class="category-filter-btn" data-category="<%= cat.name %>">
+              <span class="filter-name">
+                <%= cat.name %>
+              </span>
+              <span class="filter-count">
+                <%= cat.length %>
+              </span>
+            </button>
+            <% }) %>
+        </div>
+      </div>
+      <% } %>
+
+        <%# 标签列表 %>
+          <% if (site.tags && site.tags.length) { %>
+            <div class="tags-section">
+              <h3 class="tags-title"># 标签</h3>
+              <div class="tags-list">
+                <% site.tags.sort('length', -1).each(function(tag) { %>
+                  <a href="<%- url_for(tag.path) %>" class="tag-item" title="<%= tag.name %> (<%= tag.length %>篇)">
+                    <span class="tag-name">#<%= tag.name %></span>
+                    <span class="tag-count">
+                      <%= tag.length %>
+                    </span>
+                  </a>
+                  <% }) %>
+              </div>
+            </div>
+            <% } %>
+
+              <!-- 文章列表 -->
+              <section class="posts-section">
+                <% page.posts.each(function(post, index) { %>
+                  <% var postCategory=(post.categories && post.categories.length) ? post.categories.toArray()[0].name
+                    : '' ; %>
+                    <article class="post-item" style="--delay: <%= index * 0.05 %>s"
+                      data-category="<%= postCategory %>">
+                      <a href="<%- url_for(post.path) %>" class="post-link">
+                        <div class="post-meta">
+                          <time datetime="<%- date(post.date, 'YYYY-MM-DD') %>">
+                            <%- date(post.date, 'YYYY.MM.DD' ) %>
+                          </time>
+                          <% if (post.categories && post.categories.length) { %>
+                            <span class="post-category"><%- post.categories.toArray()[0].name %></span>
+                            <% } %>
+                        </div>
+                        <h2 class="post-title">
+                          <%= post.title %>
+                        </h2>
+                        <% if (post.excerpt) { %>
+                          <% var excerpt=strip_html(post.excerpt).trim(); %>
+                            <p class="post-excerpt"><%- excerpt.substring(0, 100) %>
+                                <%= excerpt.length> 100 ? '...' : '' %></p>
+                            <% } %>
+                      </a>
+                      <% if (post.tags && post.tags.length) { %>
+                        <div class="post-tags">
+                          <% post.tags.toArray().slice(0, 3).forEach(function(tag) { %>
+                            <a href="<%- url_for(tag.path) %>" class="tag">
+                              <%= tag.name %>
+                            </a>
+                            <% }) %>
+                        </div>
+                        <% } %>
+                    </article>
+                    <% }) %>
+              </section>
+
+              <% if (page.total> 1) { %>
+                <%- partial('_partial/pagination') %>
+                  <% } %>
+</div>

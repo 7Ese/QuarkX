@@ -1,0 +1,80 @@
+<% if (page.total > 1) { %>
+<nav class="pagination" role="navigation" aria-label="分页导航">
+  <!-- 上一页 -->
+  <% if (page.prev) { %>
+    <a href="<%- url_for(page.prev_link) %>" class="page-link page-prev" aria-label="上一页">
+      <svg class="page-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+      <span class="page-text">上一页</span>
+    </a>
+  <% } else { %>
+    <span class="page-link page-prev is-disabled" aria-disabled="true">
+      <svg class="page-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+      <span class="page-text">上一页</span>
+    </span>
+  <% } %>
+  
+  <!-- 页码区域 -->
+  <div class="page-numbers" role="list">
+    <%
+    // 计算显示的页码范围
+    const current = page.current;
+    const total = page.total;
+    const maxVisible = 7; // PC 端最多显示 7 个页码
+    const maxVisibleMobile = 5; // 移动端最多显示 5 个页码
+    
+    let startPage = Math.max(1, current - Math.floor(maxVisible / 2));
+    let endPage = Math.min(total, startPage + maxVisible - 1);
+    
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    %>
+    
+    <!-- 第一页 + ... -->
+    <% if (startPage > 1) { %>
+      <a href="<%- url_for('') %>" class="page-number" aria-label="第 1 页">1</a>
+      <% if (startPage > 2) { %>
+        <span class="page-ellipsis" aria-hidden="true">···</span>
+      <% } %>
+    <% } %>
+    
+    <!-- 页码列表 -->
+    <% for (let i = startPage; i <= endPage; i++) { %>
+      <% if (i === current) { %>
+        <span class="page-number is-current" aria-current="page" aria-label="当前页，第 <%= i %> 页"><%= i %></span>
+      <% } else { %>
+        <a href="<%- url_for(i === 1 ? '' : 'page/' + i + '/') %>" class="page-number" aria-label="第 <%= i %> 页"><%= i %></a>
+      <% } %>
+    <% } %>
+    
+    <!-- ... + 最后一页 -->
+    <% if (endPage < total) { %>
+      <% if (endPage < total - 1) { %>
+        <span class="page-ellipsis" aria-hidden="true">···</span>
+      <% } %>
+      <a href="<%- url_for('page/' + total + '/') %>" class="page-number" aria-label="第 <%= total %> 页"><%= total %></a>
+    <% } %>
+  </div>
+  
+  <!-- 下一页 -->
+  <% if (page.next) { %>
+    <a href="<%- url_for(page.next_link) %>" class="page-link page-next" aria-label="下一页">
+      <span class="page-text">下一页</span>
+      <svg class="page-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"></path>
+      </svg>
+    </a>
+  <% } else { %>
+    <span class="page-link page-next is-disabled" aria-disabled="true">
+      <span class="page-text">下一页</span>
+      <svg class="page-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"></path>
+      </svg>
+    </span>
+  <% } %>
+</nav>
+<% } %>

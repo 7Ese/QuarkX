@@ -1,0 +1,19 @@
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <p class="copyright">
+        &copy; <%= theme.footer.since %> - <%= new Date().getFullYear() %>
+            <a href="<%- url_for('/') %>">
+              <%= config.author || config.title %>
+            </a>
+      </p>
+      <% if (theme.footer.powered_by) { %>
+        <p class="powered">
+          Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+          <span class="separator">·</span>
+          Theme <span class="accent">geek-minimal</span>
+        </p>
+        <% } %>
+    </div>
+  </div>
+</footer>

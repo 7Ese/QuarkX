@@ -1,0 +1,19 @@
+<div class="search-box" id="searchBox">
+  <div class="search-input-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/>
+      <path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input 
+      type="text" 
+      class="search-input" 
+      id="searchInput" 
+      placeholder="<%= theme.search.placeholder || '搜索文章...' %>"
+      autocomplete="off"
+      aria-label="搜索文章"
+    >
+    <kbd class="search-shortcut">/</kbd>
+  </div>
+  <div class="search-results" id="searchResults" aria-live="polite"></div>
+</div>
+

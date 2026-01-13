@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="<%= config.language %>" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
+  <script>
+    (function () {
+      const storageKey = 'theme';
+      const saved = localStorage.getItem(storageKey);
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      const doc = document.documentElement;
+      doc.dataset.theme = theme;
+      const metas = document.querySelectorAll('meta[name="theme-color"]');
+      metas.forEach(m => m.setAttribute('content', theme === 'dark' ? '#111110' : '#faf9f7'));
+      window.__THEME_CONFIG__ = Object.assign({}, window.__THEME_CONFIG__ || {}, {
+        typewriterTexts: <%- JSON.stringify(theme.typewriter_texts || []) %>,
+        search: {
+          enabled: <%- (theme.search && theme.search.enable === false) ? 'false' : 'true' %>,
+          root: '<%- config.root || "/" %>'
+        },
+        themeColor: {
+          light: '#faf9f7',
+          dark: '#111110'
+        }
+      });
+    })();
+  </script>
+  <title>
+    <%= page.title ? page.title + ' — ' + config.title : config.title %>
+  </title>
+  <meta name="description" content="<%= page.description || page.excerpt || config.description %>">
+
+  <!-- SEO优化 -->
+  <meta name="keywords" content="<%= page.tags && page.tags.length ? page.tags.map(tag => tag.name).join(', ') : '' %>">
+  <link rel="canonical" href="<%= config.url %><%- url_for(page.path) %>">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="<%= is_post() ? 'article' : 'website' %>">
+  <meta property="og:url" content="<%= config.url %><%- url_for(page.path) %>">
+  <meta property="og:title" content="<%= page.title || config.title %>">
+  <meta property="og:description" content="<%= page.description || page.excerpt || config.description %>">
+  <meta property="og:site_name" content="<%= config.title %>">
+  <% if (page.date) { %>
+    <meta property="article:published_time" content="<%- date(page.date, 'YYYY-MM-DD') %>">
+    <% } %>
+
+      <!-- Twitter Card -->
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:url" content="<%= config.url %><%- url_for(page.path) %>">
+      <meta name="twitter:title" content="<%= page.title || config.title %>">
+      <meta name="twitter:description" content="<%= page.description || page.excerpt || config.description %>">
+
+      <!-- 资源预加载优化 -->
+      <link rel="preload" href="<%- url_for('css/style.css') %>" as="style">
+      <link rel="preload" href="<%- url_for('js/main.js') %>" as="script">
+
+      <!-- ✨ 通用优化2: 字体异步加载优化 + 子集化 -->
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap&subset=latin"
+        rel="stylesheet" media="print" onload="this.media='all'">
+      <noscript>
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap&subset=latin"
+          rel="stylesheet">
+      </noscript>
+
+      <%- css('css/style') %>
+</head>
+<% const isAboutPage=(typeof is_page==='function' && is_page()) && (page && page.path &&
+  String(page.path).indexOf('about/')===0); const isArchivePage=(typeof is_archive==='function' && is_archive()); const
+  isHomePage=(typeof is_home==='function' && is_home()); const isPostPage=(typeof is_post==='function' && is_post());
+  const showMobileTabbar=isHomePage || isArchivePage || isAboutPage || isPostPage; const bodyClasses=[]; if (isHomePage)
+  bodyClasses.push('is-home'); if (isArchivePage) bodyClasses.push('is-archive'); if (isAboutPage)
+  bodyClasses.push('is-about'); if (isPostPage) bodyClasses.push('is-post'); if (showMobileTabbar)
+  bodyClasses.push('has-mobile-tabbar'); %>
+
+  <body class="<%= bodyClasses.join(' ') %>">
+    <div class="layout">
+      <!-- 左侧固定区域 -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-inner">
+          <header class="site-header">
+            <a href="<%- url_for('/') %>" class="site-logo">
+              <span class="logo-symbol">&gt;_</span>
+              <span class="logo-text">
+                <%= theme.logo || config.title %>
+              </span>
+            </a>
+            <p class="site-tagline" id="tagline"></p>
+          </header>
+
+          <%# 固定的导航菜单 %>
+            <nav class="site-nav">
+              <% for (var name in theme.menu) { %>
+                <% if (name==='Home' ) { %>
+                  <%# Home 导航项 %>
+                    <a href="<%- url_for(theme.menu[name]) %>"
+                      class="nav-item <%= page.path === 'index.html' ? 'is-active' : '' %>">
+                      <span class="nav-text">
+                        <%= name %>
+                      </span>
+                      <span class="nav-arrow">→</span>
+                    </a>
+
+                    <%# 分类二级菜单（默认展开） - 使用前端过滤 %>
+                      <% if (site.categories && site.categories.length) { %>
+                        <div class="nav-submenu">
+                          <% site.categories.sort('length', -1).each(function(cat) { %>
+                            <button class="nav-submenu-item category-filter-btn" data-category="<%= cat.name %>">
+                              <span class="submenu-name">
+                                <%= cat.name %>
+                              </span>
+                              <span class="submenu-count">
+                                <%= cat.length %>
+                              </span>
+                            </button>
+                            <% }) %>
+                        </div>
+                        <% } %>
+                          <% } else { %>
+                            <%# 其他导航项保持不变 %>
+                              <a href="<%- url_for(theme.menu[name]) %>"
+                                class="nav-item <%= is_current(theme.menu[name]) ? 'is-active' : '' %>">
+                                <span class="nav-text">
+                                  <%= name %>
+                                </span>
+                                <span class="nav-arrow">→</span>
+                              </a>
+                              <% } %>
+                                <% } %>
+            </nav>
+
+            <%# 标签已移至首页主内容区 %>
+
+              <div class="sidebar-footer">
+                <% if (theme.social && Object.keys(theme.social).length> 0) { %>
+                  <div class="sidebar-social">
+                    <% for (var name in theme.social) { %>
+                      <a href="<%= theme.social[name] %>" class="social-link" title="<%= name %>" target="_blank"
+                        rel="noopener noreferrer">
+                        <span class="social-icon">
+                          <% if (name==='GitHub' ) { %>
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path
+                                d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                            </svg>
+                            <% } else if (name==='Email' ) { %>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                <polyline points="22,6 12,13 2,6" />
+                              </svg>
+                              <% } else if (name==='Telegram' ) { %>
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                  <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                                </svg>
+                                <% } else if (name==='Twitter' ) { %>
+                                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path
+                                      d="M22 5.92c-.74.33-1.54.55-2.38.65.86-.52 1.52-1.34 1.83-2.32-.8.48-1.7.82-2.65 1.01A4.16 4.16 0 0015.75 4c-2.3 0-4.17 1.87-4.17 4.17 0 .33.04.65.11.95-3.46-.17-6.52-1.83-8.57-4.35-.36.62-.57 1.34-.57 2.11 0 1.45.74 2.73 1.86 3.48-.69-.02-1.33-.21-1.9-.52v.05c0 2.03 1.45 3.72 3.36 4.11-.35.09-.72.14-1.11.14-.27 0-.53-.03-.78-.07.53 1.64 2.06 2.84 3.88 2.88A8.35 8.35 0 012 19.54 11.8 11.8 0 008.39 21c7.67 0 11.86-6.35 11.86-11.86 0-.18 0-.36-.01-.54.82-.6 1.53-1.34 2.09-2.18z" />
+                                  </svg>
+                                <% } %>
+                        </span>
+                      </a>
+                      <% } %>
+                  </div>
+                  <% } %>
+              </div>
+        </div>
+      </aside>
+
+      <!-- 移动端头部 -->
+      <header class="mobile-header" id="mobileHeader">
+        <a href="<%- url_for('/') %>" class="mobile-logo">
+          <span class="mobile-logo-symbol">&gt;_</span>
+          <span class="mobile-logo-text">
+            <%= theme.logo || config.title %>
+          </span>
+        </a>
+      </header>
+
+      <!-- 主内容区 -->
+      <main class="main-content">
+        <div class="content-wrapper">
+          <%- body %>
+        </div>
+
+        <% if (showMobileTabbar) { %>
+          <div class="mobile-tabbar" id="mobileTabbar" aria-hidden="true">
+            <nav class="mobile-tabbar-group" id="mobileTabbarGroup" aria-label="页面导航">
+              <a class="mobile-tabbar-item<%= isHomePage ? ' is-active' : '' %>"
+                href="<%- url_for(theme.menu && theme.menu.Home ? theme.menu.Home : '/') %>">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 10.5L12 3l9 7.5"></path>
+                  <path d="M5 10v10h14V10"></path>
+                </svg>
+                <span class="tab-label">Home</span>
+              </a>
+              <a class="mobile-tabbar-item<%= isArchivePage ? ' is-active' : '' %>"
+                href="<%- url_for(theme.menu && theme.menu.Archive ? theme.menu.Archive : '/archives') %>">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7h18"></path>
+                  <path d="M5 7V5h14v2"></path>
+                  <path d="M5 7v14h14V7"></path>
+                  <path d="M9 11h6"></path>
+                </svg>
+                <span class="tab-label">Archive</span>
+              </a>
+              <a class="mobile-tabbar-item<%= isAboutPage ? ' is-active' : '' %>"
+                href="<%- url_for(theme.menu && theme.menu.About ? theme.menu.About : '/about') %>">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 21a8 8 0 10-16 0"></path>
+                  <circle cx="12" cy="7" r="3"></circle>
+                </svg>
+                <span class="tab-label">About</span>
+              </a>
+            </nav>
+
+            <div class="mobile-tabbar-searchPill" id="mobileTabbarSearchPill">
+              <button class="mobile-tabbar-searchBtn" id="mobileTabSearchBtn" type="button" aria-label="Search"
+                aria-expanded="false" aria-controls="tabbarSearchInput">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M21 21l-4.3-4.3"></path>
+                </svg>
+              </button>
+
+              <div class="mobile-tabbar-searchInput" aria-hidden="true">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M21 21l-4.3-4.3"></path>
+                </svg>
+                <input type="text" id="tabbarSearchInput" class="mobile-tabbar-input"
+                  placeholder="<%= theme.search.placeholder || '搜索文章...' %>" autocomplete="off" aria-label="搜索文章">
+                <button class="mobile-tabbar-searchClose" type="button" id="tabbarSearchCloseBtn"
+                  aria-label="Close">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mobile-tabbar-results" id="tabbarSearchResultsWrap" aria-hidden="true">
+            <div class="search-results" id="tabbarSearchResults" aria-live="polite"></div>
+          </div>
+
+          <!-- PC端浮动操作按钮 (下滑触发) -->
+          <div class="pc-float-actions" id="pcFloatActions" aria-hidden="true">
+            <!-- 搜索按钮 -->
+            <button class="pc-float-btn" id="pcFloatSearchBtn" type="button" aria-label="搜索">
+              <svg class="float-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+              </svg>
+            </button>
+
+            <!-- 深色模式按钮 -->
+            <button class="pc-float-btn" id="pcFloatThemeBtn" type="button" aria-label="切换主题">
+              <svg class="float-icon float-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path
+                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41">
+                </path>
+              </svg>
+              <svg class="float-icon float-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3a6.8 6.8 0 009.8 9.8z"></path>
+              </svg>
+            </button>
+
+            <!-- 返回顶部按钮 -->
+            <button class="pc-float-btn" id="pcFloatTopBtn" type="button" aria-label="返回顶部">
+              <svg class="float-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 19V5"></path>
+                <path d="M5 12l7-7 7 7"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- PC端全屏搜索弹窗 -->
+          <div class="pc-search-modal" id="pcSearchModal" aria-hidden="true">
+            <div class="pc-search-backdrop" id="pcSearchBackdrop"></div>
+            <div class="pc-search-container">
+              <div class="pc-search-header">
+                <div class="pc-search-input-wrapper">
+                  <svg class="pc-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                  </svg>
+                  <input type="text" id="pcSearchInput" class="pc-search-input"
+                    placeholder="<%= theme.search.placeholder || '搜索文章...' %>" autocomplete="off" aria-label="搜索文章">
+                  <kbd class="pc-search-kbd">ESC</kbd>
+                </div>
+                <button class="pc-search-close" id="pcSearchCloseBtn" type="button" aria-label="关闭">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="pc-search-results-wrapper">
+                <%# PC 搜索弹窗内：标签快捷入口（PC端展示，移动端已隐藏PC弹窗） %>
+                  <% if (site.tags && site.tags.length) { %>
+                    <div class="pc-search-tags" id="pcSearchTags" aria-label="标签快捷入口">
+                      <div class="pc-search-tags-title"># 标签</div>
+                      <div class="pc-search-tags-list">
+                        <% site.tags.sort('length', -1).each(function(tag) { %>
+                          <button type="button" class="pc-search-tag" data-tag="<%= tag.name %>"
+                            title="点击搜索「<%= tag.name %>」标签 (<%= tag.length %>篇)">
+                            <span class="pc-search-tag-name">#<%= tag.name %></span>
+                            <span class="pc-search-tag-count">
+                              <%= tag.length %>
+                            </span>
+                          </button>
+                          <% }) %>
+                      </div>
+                    </div>
+                    <% } %>
+                      <div class="pc-search-results" id="pcSearchResults" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mobile-float-actions" id="mobileFloatActions" aria-hidden="true">
+            <button class="mobile-float-btn" id="mobileFloatThemeBtn" type="button" aria-label="切换主题">
+              <svg class="float-icon float-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path
+                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41">
+                </path>
+              </svg>
+              <svg class="float-icon float-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.8A8.5 8.5 0 1111.2 3a6.8 6.8 0 009.8 9.8z"></path>
+              </svg>
+            </button>
+
+            <button class="mobile-float-btn" id="mobileFloatTopBtn" type="button" aria-label="返回顶部">
+              <svg class="float-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 19V5"></path>
+                <path d="M5 12l7-7 7 7"></path>
+              </svg>
+            </button>
+          </div>
+          <% } %>
+
+            <footer class="site-footer">
+              <p>© <%= new Date().getFullYear() %>
+                  <%= config.author || config.title %>
+              </p>
+            </footer>
+      </main>
+    </div>
+
+    <%- js('js/main') %>
+  </body>
+
+</html>

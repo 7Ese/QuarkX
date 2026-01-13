@@ -1,0 +1,28 @@
+<article class="post-card">
+  <a href="<%- url_for(item.path) %>" class="post-card-link">
+    <div class="post-card-meta">
+      <time datetime="<%- date(item.date, 'YYYY-MM-DD') %>">
+        <%- date(item.date, 'YYYY.MM.DD') %>
+      </time>
+      <% if (item.categories && item.categories.length) { %>
+        <span class="separator">·</span>
+        <span class="post-card-category">
+          <%- item.categories.toArray()[0].name %>
+        </span>
+      <% } %>
+    </div>
+    <h2 class="post-card-title"><%= item.title %></h2>
+    <% if (item.excerpt) { %>
+      <p class="post-card-excerpt"><%- strip_html(item.excerpt).substring(0, 120) %>...</p>
+    <% } %>
+    <% if (item.tags && item.tags.length) { %>
+      <div class="post-card-tags">
+        <% item.tags.toArray().slice(0, 3).forEach(function(tag) { %>
+          <span class="tag"><%= tag.name %></span>
+        <% }) %>
+      </div>
+    <% } %>
+  </a>
+</article>
+
+

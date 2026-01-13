@@ -1,0 +1,41 @@
+<div class="<%= page.category ? 'page-category' : 'page-archive' %>">
+  <header class="<%= page.category ? 'category-header' : 'archive-header' %>">
+    <h1 class="<%= page.category ? 'category-title' : 'archive-title' %>">
+      <%= page.category || '归档' %>
+    </h1>
+    <p class="<%= page.category ? 'category-count' : 'archive-count' %>"><span class="num">
+        <%= page.category ? page.posts.length : site.posts.length %>
+      </span> 篇文章</p>
+  </header>
+
+  <div class="<%= page.category ? 'category-list' : 'archive-list' %>">
+    <%
+      // ✨ 分类页面使用 page.posts，归档页面使用 site.posts
+      var years = {};
+      var posts = page.category ? page.posts : site.posts;
+      posts.sort('date', -1).each(function(post) {
+        var year = date(post.date, 'YYYY');
+        if (!years[year]) years[year] = [];
+        years[year].push(post);
+      });
+    %>
+
+      <% Object.keys(years).sort(function(a, b) { return b - a; }).forEach(function(year) { %>
+        <section class="<%= page.category ? 'category-group' : 'archive-group' %>">
+          <h2 class="year-title">
+            <%= year %>
+          </h2>
+          <ul class="year-posts">
+            <% years[year].forEach(function(post) { %>
+              <li class="<%= page.category ? 'category-item' : 'archive-item' %>">
+                <time><%- date(post.date, 'MM.DD') %></time>
+                <a href="<%- url_for(post.path) %>">
+                  <%= post.title %>
+                </a>
+              </li>
+              <% }) %>
+          </ul>
+        </section>
+        <% }) %>
+  </div>
+</div>

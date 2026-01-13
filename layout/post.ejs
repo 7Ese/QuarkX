@@ -1,0 +1,41 @@
+<article class="page-post">
+  <header class="post-header">
+    <a href="<%- url_for('/') %>" class="back-link">← 返回</a>
+    <div class="post-meta">
+      <time datetime="<%- date(page.date, 'YYYY-MM-DD') %>"><%- date(page.date, 'YYYY年MM月DD日') %></time>
+      <% if (page.categories && page.categories.length) { %>
+        <span class="sep">·</span>
+        <a href="<%- url_for(page.categories.toArray()[0].path) %>" class="category"><%- page.categories.toArray()[0].name %></a>
+      <% } %>
+    </div>
+    <h1 class="post-title"><%= page.title %></h1>
+    <% if (page.tags && page.tags.length) { %>
+      <div class="post-tags">
+        <% page.tags.each(function(tag) { %>
+          <a href="<%- url_for(tag.path) %>" class="tag"><%= tag.name %></a>
+        <% }) %>
+      </div>
+    <% } %>
+  </header>
+  
+  <div class="post-body prose">
+    <%- page.content %>
+  </div>
+  
+  <footer class="post-footer">
+    <nav class="post-nav">
+      <% if (page.prev) { %>
+        <a href="<%- url_for(page.prev.path) %>" class="nav-prev">
+          <span class="nav-label">上一篇</span>
+          <span class="nav-title"><%= page.prev.title %></span>
+        </a>
+      <% } %>
+      <% if (page.next) { %>
+        <a href="<%- url_for(page.next.path) %>" class="nav-next">
+          <span class="nav-label">下一篇</span>
+          <span class="nav-title"><%= page.next.title %></span>
+        </a>
+      <% } %>
+    </nav>
+  </footer>
+</article>

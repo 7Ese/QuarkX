@@ -1,0 +1,39 @@
+# QuarkX Theme Configuration
+
+# Menu
+menu:
+  Home: /
+  Archive: /archives
+  About: /about
+
+# Logo text
+logo: "Wayne Lex"
+
+# Subtitle for typewriter effect
+typewriter_texts:
+  - "凡是过往，皆为序章"
+  - "Focus on the good, and the good gets better."
+  - "热爱可抵岁月漫长。"
+  - "Don't count the days, make the days count."
+  - "满怀希望，就会所向披靡。"
+
+# Footer
+footer:
+  since: 2026
+  powered_by: true
+
+# Search
+search:
+  enable: true
+  placeholder: "搜索关键字..."
+
+# Code highlight
+highlight:
+  theme: minimal
+
+# Social Links
+social:
+  GitHub: https://github.com/7Ese
+  Email: mailto:hi@wayne.im
+  Telegram: https://wayne.im/#
+  Twitter: https://x.com/0x7Ese
