@@ -21,7 +21,8 @@
   /* 尺寸 */
   --sidebar-width: 280px;
   --content-max: 680px;
-  --radius: 3px;
+  --radius: 6px;
+  --radius-lg: 12px;
 
   /* 过渡 */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -32,43 +33,51 @@
 :root,
 [data-theme="light"] {
   --bg: #faf9f7;
-  --bg-alt: #f0efed;
+  --bg-alt: #f4f3f1;
   --bg-code: #1a1a1a;
+  --bg-gradient: linear-gradient(180deg, #faf9f7 0%, #f5f4f2 100%);
 
   --text: #1a1a1a;
-  --text-2: #555;
-  --text-3: #888;
+  --text-2: #4a4a4a;
+  --text-3: #737373;
 
   --accent: #bf4a1c;
   /* 暗橙 */
   --accent-hover: #a33d15;
-  --accent-bg: rgba(191, 74, 28, 0.08);
+  --accent-bg: rgba(191, 74, 28, 0.06);
+  --accent-shadow: rgba(191, 74, 28, 0.15);
 
-  --border: #e5e4e2;
-  --border-light: #eeedeb;
+  --border: #e0dfdd;
+  --border-light: #ebebea;
 
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* ---- 深色主题 ---- */
 [data-theme="dark"] {
   --bg: #111110;
-  --bg-alt: #1a1918;
+  --bg-alt: #1c1b1a;
   --bg-code: #0d0d0c;
+  --bg-gradient: linear-gradient(180deg, #111110 0%, #0a0a09 100%);
 
   --text: #e8e6e3;
-  --text-2: #a09d98;
-  --text-3: #666;
+  --text-2: #b0ada8;
+  --text-3: #7a7875;
 
   --accent: #a78bfa;
   /* 亮紫 */
   --accent-hover: #c4b5fd;
-  --accent-bg: rgba(167, 139, 250, 0.12);
+  --accent-bg: rgba(167, 139, 250, 0.1);
+  --accent-shadow: rgba(167, 139, 250, 0.25);
 
-  --border: #2a2928;
-  --border-light: #222;
+  --border: #2d2c2b;
+  --border-light: #252423;
 
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 /* ---- 基础 ---- */
@@ -76,6 +85,12 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* ✨ 防深色模式闪白：CSS加载时立即应用背景色 */
+  background: #faf9f7;
+}
+
+html[data-theme="dark"] {
+  background: #111110;
 }
 
 /* PC 端防布局抖动：弹窗锁滚动时滚动条“消失/出现”不再改变页面可用宽度 */
@@ -91,6 +106,7 @@ body {
   line-height: 1.6;
   color: var(--text);
   background: var(--bg);
+  background-image: var(--bg-gradient);
   -webkit-font-smoothing: antialiased;
   transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
 }
@@ -174,6 +190,60 @@ img {
   flex-direction: column;
   gap: 0.375rem;
   padding: 0.5rem 0;
+}
+
+/* ✨ 侧边栏入场交错动画 (方案C) */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar .site-logo,
+.sidebar .site-tagline {
+  opacity: 0;
+  animation: slideInLeft 0.4s var(--ease) forwards;
+}
+
+.sidebar .site-logo {
+  animation-delay: 0.05s;
+}
+
+.sidebar .site-tagline {
+  animation-delay: 0.1s;
+}
+
+.sidebar .nav-item {
+  opacity: 0;
+  animation: slideInLeft 0.35s var(--ease) forwards;
+}
+
+.sidebar .nav-item:nth-child(1) {
+  animation-delay: 0.15s;
+}
+
+.sidebar .nav-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.sidebar .nav-item:nth-child(3) {
+  animation-delay: 0.25s;
+}
+
+.sidebar .nav-item:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.sidebar .sidebar-social {
+  opacity: 0;
+  animation: slideInLeft 0.4s var(--ease) forwards;
+  animation-delay: 0.35s;
 }
 
 .nav-item {
@@ -727,6 +797,8 @@ img {
   background: var(--accent-bg);
   border-color: var(--accent);
   font-weight: 500;
+  box-shadow: 0 2px 8px var(--accent-shadow);
+  transform: translateY(-1px);
 }
 
 .category-filter-btn .filter-name {
@@ -1145,10 +1217,33 @@ body.pc-search-open {
 }
 
 .post-item {
+  position: relative;
   padding: 1.5rem 0;
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
   border-bottom: 1px solid var(--border-light);
   animation: fadeUp 0.4s var(--ease) backwards;
   animation-delay: var(--delay);
+}
+
+/* 左侧强调线 - 悬停时出现 */
+.post-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleY(0.6);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.post-item:hover::before {
+  opacity: 1;
+  transform: scaleY(1);
 }
 
 .post-item:first-child {
@@ -1616,6 +1711,35 @@ body.pc-search-open {
     40px 0 0 0 #27c93f,
     40px 0 0 1px rgba(0, 0, 0, 0.1);
   z-index: 2;
+}
+
+/* ✨ 代码块语言标签 (方案D) */
+.prose>.highlight figcaption,
+.prose>figure.highlight figcaption {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 3;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prose>.highlight figcaption span,
+.prose>figure.highlight figcaption span {
+  display: none;
+}
+
+.prose>.highlight figcaption a,
+.prose>figure.highlight figcaption a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .prose .highlight table {

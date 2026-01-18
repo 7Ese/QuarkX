@@ -1,76 +1,81 @@
 <!DOCTYPE html>
-<html lang="<%= config.language %>" data-theme="light">
+<html lang="<%= config.language %>">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
-  <script>
-    (function () {
-      const storageKey = 'theme';
-      const saved = localStorage.getItem(storageKey);
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = saved || (prefersDark ? 'dark' : 'light');
-      const doc = document.documentElement;
-      doc.dataset.theme = theme;
-      const metas = document.querySelectorAll('meta[name="theme-color"]');
-      metas.forEach(m => m.setAttribute('content', theme === 'dark' ? '#111110' : '#faf9f7'));
-      window.__THEME_CONFIG__ = Object.assign({}, window.__THEME_CONFIG__ || {}, {
-        typewriterTexts: <% - JSON.stringify(theme.typewriter_texts || []) %>,
-        search: {
-          enabled: <% - (theme.search && theme.search.enable === false) ? 'false' : 'true' %>,
-          root: '<%- config.root || "/" %>'
-        },
-        themeColor: {
-          light: '#faf9f7',
-          dark: '#111110'
-        }
-      });
-    })();
-  </script>
-  <title>
-    <%= page.title ? page.title + ' — ' + config.title : config.title %>
-  </title>
-  <meta name="description" content="<%= page.description || page.excerpt || config.description %>">
+  <%# ✨ 防闪白：在任何内容渲染前设置主题和背景色 %>
+    <script>
+      (function () {
+        var storageKey = 'theme';
+        var saved = null;
+        try { saved = localStorage.getItem(storageKey); } catch (e) { }
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved || (prefersDark ? 'dark' : 'light');
+        var bg = theme === 'dark' ? '#111110' : '#faf9f7';
+        var doc = document.documentElement;
+        doc.dataset.theme = theme;
+        doc.style.setProperty('background', bg);
+        doc.style.setProperty('color', theme === 'dark' ? '#e8e6e3' : '#1a1a1a');
+        // 写入关键CSS，确保body也有正确背景
+        document.write('<style>html,body{background:' + bg + '!important}</style>');
+        var metas = document.querySelectorAll('meta[name="theme-color"]');
+        metas.forEach(function (m) { m.setAttribute('content', bg); });
+        window.__THEME_CONFIG__ = {
+          typewriterTexts: <% - JSON.stringify(theme.typewriter_texts || []) %>,
+          search: {
+            enabled: <% - (theme.search && theme.search.enable === false) ? 'false' : 'true' %>,
+            root: '<%- config.root || "/" %>'
+          },
+          themeColor: { light: '#faf9f7', dark: '#111110' }
+        };
+      })();
+    </script>
+    <title>
+      <%= page.title ? page.title + ' — ' + config.title : config.title %>
+    </title>
+    <meta name="description" content="<%= page.description || page.excerpt || config.description %>">
 
-  <!-- SEO优化 -->
-  <meta name="keywords" content="<%= page.tags && page.tags.length ? page.tags.map(tag => tag.name).join(', ') : '' %>">
-  <link rel="canonical" href="<%= config.url %><%- url_for(page.path) %>">
+    <!-- SEO优化 -->
+    <meta name="keywords"
+      content="<%= page.tags && page.tags.length ? page.tags.map(tag => tag.name).join(', ') : '' %>">
+    <link rel="canonical" href="<%= config.url %><%- url_for(page.path) %>">
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="<%= is_post() ? 'article' : 'website' %>">
-  <meta property="og:url" content="<%= config.url %><%- url_for(page.path) %>">
-  <meta property="og:title" content="<%= page.title || config.title %>">
-  <meta property="og:description" content="<%= page.description || page.excerpt || config.description %>">
-  <meta property="og:site_name" content="<%= config.title %>">
-  <% if (page.date) { %>
-    <meta property="article:published_time" content="<%- date(page.date, 'YYYY-MM-DD') %>">
-    <% } %>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="<%= is_post() ? 'article' : 'website' %>">
+    <meta property="og:url" content="<%= config.url %><%- url_for(page.path) %>">
+    <meta property="og:title" content="<%= page.title || config.title %>">
+    <meta property="og:description" content="<%= page.description || page.excerpt || config.description %>">
+    <meta property="og:site_name" content="<%= config.title %>">
+    <% if (page.date) { %>
+      <meta property="article:published_time" content="<%- date(page.date, 'YYYY-MM-DD') %>">
+      <% } %>
 
-      <!-- Twitter Card -->
-      <meta name="twitter:card" content="summary_large_image">
-      <meta name="twitter:url" content="<%= config.url %><%- url_for(page.path) %>">
-      <meta name="twitter:title" content="<%= page.title || config.title %>">
-      <meta name="twitter:description" content="<%= page.description || page.excerpt || config.description %>">
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="<%= config.url %><%- url_for(page.path) %>">
+        <meta name="twitter:title" content="<%= page.title || config.title %>">
+        <meta name="twitter:description" content="<%= page.description || page.excerpt || config.description %>">
 
-      <!-- 资源预加载优化 -->
-      <link rel="preload" href="<%- url_for('css/style.css') %>" as="style">
-      <link rel="preload" href="<%- url_for('js/main.js') %>" as="script">
+        <!-- 资源预加载优化 -->
+        <link rel="preload" href="<%- url_for('css/style.css') %>" as="style">
+        <link rel="preload" href="<%- url_for('js/main.js') %>" as="script">
 
-      <!-- ✨ 通用优化2: 字体异步加载优化 + 子集化 -->
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap&subset=latin"
-        rel="stylesheet" media="print" onload="this.media='all'">
-      <noscript>
+        <!-- ✨ 通用优化2: 字体异步加载优化 + 子集化 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
           href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap&subset=latin"
-          rel="stylesheet">
-      </noscript>
+          rel="stylesheet" media="print" onload="this.media='all'">
+        <noscript>
+          <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap&subset=latin"
+            rel="stylesheet">
+        </noscript>
 
-      <%- css('css/style') %>
+        <%- css('css/style') %>
 </head>
 <% const isAboutPage=(typeof is_page==='function' && is_page()) && (page && page.path &&
   String(page.path).indexOf('about/')===0); const isArchivePage=(typeof is_archive==='function' && is_archive()); const

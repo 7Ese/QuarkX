@@ -1380,30 +1380,59 @@
       // ✨ 新功能: 首页分类筛选
       const categoryBtns = document.querySelectorAll('.category-filter-btn');
       if (categoryBtns.length) {
+        // 检查是否在首页
+        const isHomePage = document.body.classList.contains('is-home');
+
+        // 页面加载时检查URL参数，自动应用分类筛选
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryFromUrl = urlParams.get('category');
+
+        const applyFilter = (category) => {
+          // 更新按钮状态
+          categoryBtns.forEach(b => {
+            if (b.dataset.category === category) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+
+          // 筛选文章
+          const posts = document.querySelectorAll('.post-item');
+          posts.forEach(post => {
+            if (category === 'all' || post.dataset.category === category) {
+              post.classList.remove('filtered-out');
+              post.style.display = '';
+            } else {
+              post.classList.add('filtered-out');
+            }
+          });
+
+          // 重新应用动画延迟
+          const visiblePosts = document.querySelectorAll('.post-item:not(.filtered-out)');
+          visiblePosts.forEach((post, index) => {
+            post.style.setProperty('--delay', `${index * 0.05}s`);
+          });
+        };
+
+        // 如果URL有分类参数且在首页，自动应用筛选
+        if (isHomePage && categoryFromUrl) {
+          applyFilter(categoryFromUrl);
+        }
+
         categoryBtns.forEach(btn => {
           btn.addEventListener('click', () => {
             const category = btn.dataset.category;
 
-            // 更新按钮状态
-            categoryBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // 筛选文章
-            const posts = document.querySelectorAll('.post-item');
-            posts.forEach(post => {
-              if (category === 'all' || post.dataset.category === category) {
-                post.classList.remove('filtered-out');
-                post.style.display = '';
-              } else {
-                post.classList.add('filtered-out');
-              }
-            });
-
-            // 重新应用动画延迟
-            const visiblePosts = document.querySelectorAll('.post-item:not(.filtered-out)');
-            visiblePosts.forEach((post, index) => {
-              post.style.setProperty('--delay', `${index * 0.05}s`);
-            });
+            if (isHomePage) {
+              // 在首页：直接筛选
+              applyFilter(category);
+            } else {
+              // 不在首页：跳转到首页并带上分类参数
+              const root = (THEME_CONFIG.search?.root || '/').trim();
+              const homeUrl = root.endsWith('/') ? root : `${root}/`;
+              window.location.href = `${homeUrl}?category=${encodeURIComponent(category)}`;
+            }
           });
         });
       }
