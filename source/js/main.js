@@ -80,7 +80,8 @@
     constructor(el, texts, options = {}) {
       if (!el) return;
       this.el = el;
-      this.texts = texts;
+      // ✨ 随机打乱文案顺序
+      this.texts = this.shuffle([...texts]);
       this.options = {
         typeSpeed: 80,      // 打字速度（更慢）
         deleteSpeed: 40,    // 删除速度
@@ -101,6 +102,15 @@
       }
 
       this.start();
+    }
+
+    // Fisher-Yates 随机打乱算法
+    shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
 
     start() {
@@ -142,7 +152,12 @@
           this.lastTime = currentTime;
         } else if (this.isDeleting && this.charIndex === 0) {
           this.isDeleting = false;
-          this.textIndex = (this.textIndex + 1) % this.texts.length;
+          this.textIndex++;
+          // 当所有文案都展示过一遍后，重新打乱
+          if (this.textIndex >= this.texts.length) {
+            this.texts = this.shuffle(this.texts);
+            this.textIndex = 0;
+          }
         }
       }
 
@@ -203,13 +218,20 @@
     }
 
     set(theme) {
-      // ✨ PC优化4: 添加主题切换过渡动画
+      // ✨ 添加主题切换过渡动画
       document.documentElement.classList.add('theme-transitioning');
 
+      // 设置 data-theme
       document.documentElement.dataset.theme = theme;
+
+      // 同步更新内联样式（与防闪白脚本保持一致）
       const palette = THEME_CONFIG.themeColor || { light: '#faf9f7', dark: '#111110' };
+      const colors = THEME_CONFIG.textColor || { light: '#1a1a1a', dark: '#e8e6e3' };
+      document.documentElement.style.background = palette[theme];
+      document.documentElement.style.color = colors[theme];
+
       if (this.meta) {
-        this.meta.setAttribute('content', theme === 'dark' ? palette.dark : palette.light);
+        this.meta.setAttribute('content', palette[theme] || palette.light);
       }
       if (this.btn) {
         this.btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
@@ -725,7 +747,7 @@
       if (tagline) {
         const configTexts = Array.isArray(THEME_CONFIG.typewriterTexts) ? THEME_CONFIG.typewriterTexts : [];
         const texts = configTexts.length ? configTexts : [
-          '探索代码的无限可能',
+          '能',
           'Keep hacking, keep learning',
           'Less is more',
           '代码即诗'

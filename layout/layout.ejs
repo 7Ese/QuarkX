@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
-  <%# ✨ 防闪白：在任何内容渲染前设置主题和背景色 %>
+  <%# ✨ 防闪白：在任何内容渲染前设置主题 %>
     <script>
       (function () {
         var storageKey = 'theme';
@@ -14,22 +14,22 @@
         try { saved = localStorage.getItem(storageKey); } catch (e) { }
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         var theme = saved || (prefersDark ? 'dark' : 'light');
-        var bg = theme === 'dark' ? '#111110' : '#faf9f7';
+        var palette = { light: '#faf9f7', dark: '#111110' };
+        var colors = { light: '#1a1a1a', dark: '#e8e6e3' };
         var doc = document.documentElement;
         doc.dataset.theme = theme;
-        doc.style.setProperty('background', bg);
-        doc.style.setProperty('color', theme === 'dark' ? '#e8e6e3' : '#1a1a1a');
-        // 写入关键CSS，确保body也有正确背景
-        document.write('<style>html,body{background:' + bg + '!important}</style>');
+        doc.style.background = palette[theme];
+        doc.style.color = colors[theme];
         var metas = document.querySelectorAll('meta[name="theme-color"]');
-        metas.forEach(function (m) { m.setAttribute('content', bg); });
+        metas.forEach(function (m) { m.setAttribute('content', palette[theme]); });
         window.__THEME_CONFIG__ = {
-          typewriterTexts: <% - JSON.stringify(theme.typewriter_texts || []) %>,
+          typewriterTexts: <%- JSON.stringify(theme.typewriter_texts || []) %>,
           search: {
-            enabled: <% - (theme.search && theme.search.enable === false) ? 'false' : 'true' %>,
+            enabled: <%- (theme.search && theme.search.enable === false) ? 'false' : 'true' %>,
             root: '<%- config.root || "/" %>'
           },
-          themeColor: { light: '#faf9f7', dark: '#111110' }
+          themeColor: palette,
+          textColor: colors
         };
       })();
     </script>
